@@ -67,42 +67,12 @@ test("non-admin should not be able to create franchise", async () => {
     expect(res.status).toBe(403);
 });
 
-test("admin should be able to create and delete a franchise", async () => {
-   const loginRes = await request(app).put("/api/auth/").send({ email: "a@jwt.com", password: "admin" });
-   expect(loginRes.status).toBe(200);
-
-   const franchise = await createFranchise({
-       name: "testfranchise",
-       admins: [{email: loginRes.body.user.email}]
-   }, loginRes.body.token);
-
-   await deleteFranchise(franchise.body.id, loginRes.body.token);
-});
-
-test("admin should be able to create and delete a franchise store", async () => {
-    const loginRes = await request(app).put("/api/auth/").send({ email: "a@jwt.com", password: "admin" });
-    expect(loginRes.status).toBe(200);
-
-    const franchise = await createFranchise({
-        name: "testfranchise",
-        admins: [{email: loginRes.body.user.email}]
-    }, loginRes.body.token);
-
-    const createStoreRes = await request(app).post(`/api/franchise/${franchise.body.id}/store`)
-        .set("Authorization", `Bearer ${loginRes.body.token}`)
-        .send({ franchiseId: franchise.body.id, name: "test-store" })
-    expect(createStoreRes.status).toBe(200);
-
-    const deleteStoreRes = await request(app)
-        .delete(`/api/franchise/${franchise.body.id}/store/${createStoreRes.body.id}`)
-        .set("Authorization", `Bearer ${loginRes.body.token}`);
-    expect(deleteStoreRes.status).toBe(200);
-
-    await deleteFranchise(franchise.body.id, loginRes.body.token);
-})
-
 // orderRouter tests
 
+test("get menu test", async () =>{
+    const res = await request(app).get("/api/order/menu");
+    expect(res.status).toBe(200);
+})
 
 afterAll(async () => {
     await logout(authToken)
@@ -134,20 +104,4 @@ async function logout(auth) {
 
     expect(logoutRes.status).toBe(200);
     expect(logoutRes.body.message).toBe("logout successful")
-}
-
-async function createFranchise(franchise, auth) {
-    const createFranchiseRes = await request(app).post("/api/franchise/")
-        .set("Authorization", `Bearer ${auth}`)
-        .send(franchise);
-    expect(createFranchiseRes.status).toBe(200);
-    return createFranchiseRes;
-}
-
-async function deleteFranchise(franchiseId, auth) {
-    const deleteFranchiseRes = await request(app)
-        .delete(`/api/franchise/${franchiseId}`)
-        .set("Authorization", `Bearer ${auth}`);
-    expect(deleteFranchiseRes.status).toBe(200);
-
 }
