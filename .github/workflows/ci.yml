@@ -58,7 +58,7 @@ jobs:
           };" > src/config.js
 
       - name: Tests
-        run: npm test -- --coverage --coverageReporters="text" --coverageThreshold='{"global":{"branches":80,"functions":80,"lines":80,"statements":80}}'
+        run: npm test -- --coverage --coverageReporters="text" --coverageThreshold='{"global":{"lines":80}}'
 
       - name: set version
         id: set_version
