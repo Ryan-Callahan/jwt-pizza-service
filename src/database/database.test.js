@@ -1,4 +1,7 @@
 const { DB } = require('./database');
+const {Role} = require("../model/model");
+
+const defaultAdmin = { name: '常用名字', email: 'a@jwt.com', password: 'admin', roles: [{ role: Role.Admin }] };
 
 test("addMenuItem", async () => {
     const testItem =  await DB.addMenuItem({title: "test", description: "test", image: "test", price: 5.99})
@@ -6,7 +9,7 @@ test("addMenuItem", async () => {
 });
 
 test("addDinerOrder", async () => {
-    const user = await DB.getUser('a@jwt.com', 'admin');
+    const user = await DB.addUser(defaultAdmin);
     const addedOrder = await DB.addDinerOrder(user, {
         franchiseId: 1,
         storeId: 1,
@@ -20,7 +23,7 @@ test("addDinerOrder", async () => {
 })
 
 test("getOrders", async () => {
-    const user = await DB.getUser('a@jwt.com', 'admin');
+    const user = await DB.addUser(defaultAdmin);
     const orders = await DB.getOrders(user)
     expect(orders).not.toBeUndefined()
 });
