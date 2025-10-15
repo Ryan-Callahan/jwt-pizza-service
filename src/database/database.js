@@ -64,12 +64,29 @@ class DB {
         throw new StatusCodeError('unknown user', 404);
       }
 
-      const roleResult = await this.query(connection, `SELECT * FROM userRole WHERE userId=?`, [user.id]);
-      const roles = roleResult.map((r) => {
-        return { objectId: r.objectId || undefined, role: r.role };
-      });
+      const roles = await this.#getRolesForUser(user, connection);
 
       return { ...user, roles: roles, password: undefined };
+    } finally {
+      connection.end();
+    }
+  }
+
+  async getUsers() {
+    const connection = await this.getConnection();
+    try {
+      const userList = await this.query(connection, `SELECT id, name, email FROM user`);
+      return await this.#addRolesToUsers(userList, connection)
+    } finally {
+      connection.end();
+    }
+  }
+
+  async getUsersByName(name) {
+    const connection = await this.getConnection();
+    try {
+      const userList = await this.query(connection, `SELECT id, name, email FROM user WHERE name=?`, [name]);
+      return await this.#addRolesToUsers(userList, connection);
     } finally {
       connection.end();
     }
@@ -359,6 +376,23 @@ class DB {
   async checkDatabaseExists(connection) {
     const [rows] = await connection.execute(`SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?`, [config.db.connection.database]);
     return rows.length > 0;
+  }
+
+  async #addRolesToUsers(userList, connection) {
+    return await Promise.all(userList.map(async (user) => {
+      const roles = await this.#getRolesForUser(user, connection);
+      return {
+        ...user,
+        roles: roles
+      };
+    }));
+  }
+
+  async #getRolesForUser(user, connection) {
+    const roleResult = await this.query(connection, `SELECT * FROM userRole WHERE userId=?`, [user.id]);
+    return roleResult.map((r) => {
+      return {objectId: r.objectId || undefined, role: r.role};
+    });
   }
 }
 

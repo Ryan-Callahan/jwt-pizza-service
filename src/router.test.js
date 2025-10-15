@@ -58,9 +58,15 @@ test('list users unauthorized', async () => {
 
 test('list users', async () => {
   const [user, userToken] = await registerUser(request(app));
-  const listUsersRes = await request(app)
+  let listUsersRes = await request(app)
     .get('/api/user')
     .set('Authorization', 'Bearer ' + userToken);
+  expect(listUsersRes.status).toBe(200);
+
+  // should work with query params
+  listUsersRes = await request(app)
+    .get(`/api/user?page=0&limit=20&name=${user.name}`)
+    .set('Authorization', `Bearer ${userToken}`);
   expect(listUsersRes.status).toBe(200);
 });
 

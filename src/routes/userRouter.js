@@ -55,7 +55,18 @@ userRouter.get(
   '/',
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    res.json({});
+    let { page, limit, name } = req.query
+    let users;
+    if (name === undefined || name === "*") {
+      users = await DB.getUsers();
+    } else {
+      users = await DB.getUsersByName(name);
+    }
+    if (page !== undefined && limit !== undefined) {
+      users = users.slice(limit * page, limit * (page + 1));
+      console.log(users);
+    }
+    res.json({ users });
   })
 );
 
