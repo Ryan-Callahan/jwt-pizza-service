@@ -74,7 +74,7 @@ userRouter.get(
     }
     if (page !== undefined && limit !== undefined) {
       more = (limit * (page + 1) < users.length)
-      users = users.slice(limit * page, limit * (page + 1));
+      users = users.slice(limit * page, limit * (parseInt(page) + 1));
     } else {
       more = false;
     }
