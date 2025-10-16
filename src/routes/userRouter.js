@@ -37,6 +37,7 @@ userRouter.docs = [
           roles: [{ role: 'admin' }],
         },
       ],
+      more: false
     },
   },
   {
@@ -65,16 +66,19 @@ userRouter.get(
   asyncHandler(async (req, res) => {
     let { page, limit, name } = req.query
     let users;
+    let more;
     if (name === undefined || name === "*") {
       users = await DB.getUsers();
     } else {
       users = await DB.getUsersByName(name);
     }
     if (page !== undefined && limit !== undefined) {
+      more = (limit * (page + 1) < users.length)
       users = users.slice(limit * page, limit * (page + 1));
-      console.log(users);
+    } else {
+      more = false;
     }
-    res.json({ users });
+    res.json({ users, more });
   })
 );
 

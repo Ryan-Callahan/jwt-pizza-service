@@ -65,7 +65,7 @@ test('list users', async () => {
 
   // should work with query params
   listUsersRes = await request(app)
-    .get(`/api/user?page=0&limit=20&name=${user.name}`)
+    .get(`/api/user?page=0&limit=5&name=${user.name}`)
     .set('Authorization', `Bearer ${userToken}`);
   expect(listUsersRes.status).toBe(200);
 });
