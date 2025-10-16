@@ -72,21 +72,22 @@ class DB {
     }
   }
 
-  async getUsers() {
+  async getUsers(page = 0, limit = 5, nameFilter = '*') {
     const connection = await this.getConnection();
-    try {
-      const userList = await this.query(connection, `SELECT id, name, email FROM user`);
-      return await this.#addRolesToUsers(userList, connection)
-    } finally {
-      connection.end();
-    }
-  }
 
-  async getUsersByName(name) {
-    const connection = await this.getConnection();
+    const offset = page * limit;
+    nameFilter = nameFilter.replace(/\*/g, '%');
+
     try {
-      const userList = await this.query(connection, `SELECT id, name, email FROM user WHERE name=?`, [name]);
-      return await this.#addRolesToUsers(userList, connection);
+      let userList = await this.query(connection, `SELECT id, name, email FROM user WHERE name LIKE ? LIMIT ${limit + 1} OFFSET ${offset}`, [nameFilter]);
+
+      const more = userList.length > limit;
+      if (more) {
+        userList = userList.slice(0, limit)
+      }
+
+
+      return [await this.#addRolesToUsers(userList, connection), more]
     } finally {
       connection.end();
     }
