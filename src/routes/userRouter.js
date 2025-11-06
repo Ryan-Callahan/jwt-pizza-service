@@ -59,16 +59,6 @@ userRouter.get(
   })
 );
 
-// listUsers
-userRouter.get(
-  '/',
-  authRouter.authenticateToken,
-  asyncHandler(async (req, res) => {
-    const [users, more] = await DB.getUsers(req.query.page, req.query.limit, req.query.name);
-    res.json({ users, more });
-  })
-);
-
 // updateUser
 userRouter.put(
   '/:userId',
@@ -87,18 +77,21 @@ userRouter.put(
   })
 );
 
+// deleteUser
 userRouter.delete(
   '/:userId',
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    const userId = Number(req.params.userId);
-    const user = req.user;
-    if (user.id !== userId && !user.isRole(Role.Admin)) {
-      return res.status(403).json({ message: 'unauthorized' });
-    }
+    res.json({ message: 'not implemented' });
+  })
+);
 
-    await DB.deleteUser(userId);
-    res.json({ message: `user deleted`});
+// listUsers
+userRouter.get(
+  '/',
+  authRouter.authenticateToken,
+  asyncHandler(async (req, res) => {
+    res.json({ message: 'not implemented', users: [], more: false });
   })
 );
 
