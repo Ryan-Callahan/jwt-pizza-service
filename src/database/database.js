@@ -1,5 +1,6 @@
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
+const logger = require('../logger.js');
 const config = require('../config.js');
 const { StatusCodeError } = require('../endpointHelper.js');
 const { Role } = require('../model/model.js');
@@ -322,6 +323,7 @@ class DB {
   }
 
   async query(connection, sql, params) {
+    logger.dbLogger(sql);
     const [results] = await connection.execute(sql, params);
     return results;
   }

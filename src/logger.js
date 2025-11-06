@@ -20,8 +20,20 @@ class Logger {
     next();
   };
 
+  dbLogger(query) {
+    this.log('info', 'db', query);
+  }
+
+  factoryLogger(reqBody, resBody) {
+    this.log('info', 'factory', { requestBody: reqBody, responseBody: resBody });
+  }
+
+  unhandledErrorLogger(err) {
+    this.log('error', 'unhandledError', { message: err.message, status: err.statusCode });
+  }
+
   log(level, type, logData) {
-    const labels = { component: config.grafana.source, level: level, type: type };
+    const labels = { component: config.logging.source, level: level, type: type };
     const values = [this.nowString(), this.sanitize(logData)];
     const logEvent = { streams: [{ stream: labels, values: [values] }] };
 
@@ -45,12 +57,12 @@ class Logger {
 
   sendLogToGrafana(event) {
     const body = JSON.stringify(event);
-    fetch(`${config.grafana.url}`, {
+    fetch(`${config.logging.url}`, {
       method: 'post',
       body: body,
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${config.grafana.userId}:${config.grafana.accessPolicyToken}`,
+        Authorization: `Bearer ${config.logging.userId}:${config.logging.apiKey}`,
       },
     }).then((res) => {
       if (!res.ok) console.log('Failed to send log to Grafana');
