@@ -64,7 +64,7 @@ if (process.env.NODE_ENV !== 'test') {
 
       metrics.push(createMetric('pizza_purchase_requests', stat.count, '1', 'sum', 'asInt', attributes))
       metrics.push(createMetric('pizza_purchase_latency_total', stat.totalLatencyMs, 'ms', 'sum', 'asDouble', attributes))
-      metrics.push(createMetric('pizza_purchase_price_total', stat.totalPrice, 'usd', 'sum', 'asDouble', attributes))
+      metrics.push(createMetric('pizza_purchase_price_total', stat.totalPrice, '1', 'sum', 'asDouble', attributes))
       metrics.push(createMetric('pizza_purchase_pizza_total', stat.totalPizzas, '1', 'sum', 'asInt', attributes))
 
     })
