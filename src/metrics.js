@@ -141,4 +141,4 @@ function sendMetricToGrafana(metrics) {
     });
 }
 
-module.exports = { requestTracker, pizzaPurchase, stopMetrics };
+module.exports = { requestTracker, pizzaPurchase };
