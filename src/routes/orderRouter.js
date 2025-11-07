@@ -1,5 +1,6 @@
 const express = require('express');
 const logger = require('../logger.js');
+const metrics = require('../metrics.js');
 const config = require('../config.js');
 const { Role, DB } = require('../database/database.js');
 const { authRouter } = require('./authRouter.js');
@@ -81,16 +82,21 @@ orderRouter.post(
     const orderReq = req.body;
     const order = await DB.addDinerOrder(req.user, orderReq);
     const orderInfo = { diner: { id: req.user.id, name: req.user.name, email: req.user.email }, order };
+    const startTime = performance.now();
     const r = await fetch(`${config.factory.url}/api/order`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', authorization: `Bearer ${config.factory.apiKey}` },
       body: JSON.stringify(orderInfo),
     });
+    const endTime = performance.now();
+    const latency = endTime - startTime;
     const j = await r.json();
     logger.factoryLogger(orderInfo, j);
     if (r.ok) {
+      metrics.pizzaPurchase('success', latency, order);
       res.send({ order, followLinkToEndChaos: j.reportUrl, jwt: j.jwt });
     } else {
+      metrics.pizzaPurchase('failure', latency, {});
       res.status(500).send({ message: 'Failed to fulfill order at factory', followLinkToEndChaos: j.reportUrl });
     }
   })
