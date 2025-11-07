@@ -20,7 +20,17 @@ test("addDinerOrder", async () => {
         }]
     })
     expect(addedOrder).not.toBeUndefined()
-})
+});
+
+test("createFranchise", async () => {
+  const user = await DB.addUser(defaultAdmin)
+  const randomName = Math.floor(Math.random() * 1000000).toString()
+  const createdFranchise = await DB.createFranchise({
+    name: randomName,
+    admins: [user]
+  });
+  expect(createdFranchise).not.toBeUndefined();
+});
 
 test("getOrders", async () => {
     const user = await DB.addUser(defaultAdmin);
