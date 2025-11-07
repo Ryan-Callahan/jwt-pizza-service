@@ -69,8 +69,8 @@ if (process.env.NODE_ENV !== 'test') {
 
     })
 
-    metrics.push(createMetric('cpu', getCpuUsagePercentage(), '%', 'gauge', 'asInt', {}))
-    metrics.push(createMetric('memory', getMemoryUsagePercentage(), '%', 'gauge', 'asInt', {}))
+    metrics.push(createMetric('cpu', getCpuUsagePercentage(), '%', 'gauge', 'asDouble', {}))
+    metrics.push(createMetric('memory', getMemoryUsagePercentage(), '%', 'gauge', 'asDouble', {}))
 
     sendMetricToGrafana(metrics);
   }, 10000);
@@ -138,7 +138,7 @@ function sendMetricToGrafana(metrics) {
   })
     .then((response) => {
       if (!response.ok) {
-        throw new Error(`HTTP status: ${response.status}`);
+        throw new Error(`HTTP status: ${response.status} ${response.text().catch(() => '')}`);
       }
     })
     .catch((error) => {
