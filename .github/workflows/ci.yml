@@ -58,7 +58,7 @@ jobs:
             metrics: {
               source: 'jwt-pizza-service',
               url: '${{ secrets.METRICS_URL }}',
-              apiKey: '${{ secrets.METRICS_API_KEY }}'
+              apiKey: '${{ secrets.METRICS_API_KEY }}',
               userId: '${{ secrets.METRICS_USER_ID }}'
             },
             logging: {
