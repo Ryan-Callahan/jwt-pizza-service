@@ -51,28 +51,30 @@ function pizzaPurchase(status, latencyMs, order) {
 }
 
 // This will periodically send metrics to Grafana
-setInterval(() => {
-  const metrics = [];
-  Object.keys(requests).forEach((endpoint) => {
-    metrics.push(createMetric('requests', requests[endpoint], '1', 'sum', 'asInt', { endpoint }));
-  });
+if (process.env.NODE_ENV !== 'test') {
+  setInterval(() => {
+    const metrics = [];
+    Object.keys(requests).forEach((endpoint) => {
+      metrics.push(createMetric('requests', requests[endpoint], '1', 'sum', 'asInt', {endpoint}));
+    });
 
-  Object.keys(pizzaPurchaseStats).forEach((status) => {
-    const stat = pizzaPurchaseStats[status];
-    const attributes = { status, endpoint: PIZZA_FACTORY_ENDPOINT}
+    Object.keys(pizzaPurchaseStats).forEach((status) => {
+      const stat = pizzaPurchaseStats[status];
+      const attributes = {status, endpoint: PIZZA_FACTORY_ENDPOINT}
 
-    metrics.push(createMetric('pizza_purchase_requests', stat.count, '1', 'sum', 'asInt', attributes))
-    metrics.push(createMetric('pizza_purchase_latency_total', stat.totalLatencyMs, 'ms', 'sum', 'asDouble', attributes))
-    metrics.push(createMetric('pizza_purchase_price_total', stat.totalPrice, 'usd', 'sum', 'asDouble', attributes))
-    metrics.push(createMetric('pizza_purchase_pizza_total', stat.totalPizzas, '1', 'sum', 'asInt', attributes))
+      metrics.push(createMetric('pizza_purchase_requests', stat.count, '1', 'sum', 'asInt', attributes))
+      metrics.push(createMetric('pizza_purchase_latency_total', stat.totalLatencyMs, 'ms', 'sum', 'asDouble', attributes))
+      metrics.push(createMetric('pizza_purchase_price_total', stat.totalPrice, 'usd', 'sum', 'asDouble', attributes))
+      metrics.push(createMetric('pizza_purchase_pizza_total', stat.totalPizzas, '1', 'sum', 'asInt', attributes))
 
-  })
+    })
 
-  metrics.push(createMetric('cpu', getCpuUsagePercentage(), '%', 'gauge', 'asInt', {}))
-  metrics.push(createMetric('memory', getMemoryUsagePercentage(), '%', 'gauge', 'asInt', {}))
+    metrics.push(createMetric('cpu', getCpuUsagePercentage(), '%', 'gauge', 'asInt', {}))
+    metrics.push(createMetric('memory', getMemoryUsagePercentage(), '%', 'gauge', 'asInt', {}))
 
-  sendMetricToGrafana(metrics);
-}, 10000);
+    sendMetricToGrafana(metrics);
+  }, 10000);
+}
 
 function createMetric(metricName, metricValue, metricUnit, metricType, valueType, attributes) {
   attributes = { ...attributes, source: config.metrics.source };
@@ -107,6 +109,11 @@ function createMetric(metricName, metricValue, metricUnit, metricType, valueType
 }
 
 function sendMetricToGrafana(metrics) {
+
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+
   const body = {
     resourceMetrics: [
       {
@@ -134,4 +141,4 @@ function sendMetricToGrafana(metrics) {
     });
 }
 
-module.exports = { requestTracker, pizzaPurchase };
+module.exports = { requestTracker, pizzaPurchase, stopMetrics };
