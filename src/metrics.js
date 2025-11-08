@@ -12,7 +12,7 @@ const pizzaPurchaseStats = {};
 function requestTracker(req, res, next) {
   const endpoint = `[${req.method}] ${req.path}`;
   requests[endpoint] = (requests[endpoint] || 0) + 1;
-  requestMethods[req.method] = (requestMethods[req.method] || 0) + 1;
+  requestMethods[`${req.method}`] = (requestMethods[req.method] || 0) + 1;
   next();
 }
 
@@ -61,7 +61,7 @@ if (process.env.NODE_ENV !== 'test') {
     });
 
     Object.keys(requestMethods).forEach((method) => {
-      metrics.push(createMetric('methods', requests[method], '1', 'sum', 'asInt', {method}));
+      metrics.push(createMetric('methods', requestMethods[method], '1', 'sum', 'asInt', {method}));
     });
 
     Object.keys(pizzaPurchaseStats).forEach((status) => {
