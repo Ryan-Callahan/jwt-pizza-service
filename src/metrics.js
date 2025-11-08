@@ -60,6 +60,10 @@ if (process.env.NODE_ENV !== 'test') {
       metrics.push(createMetric('requests', requests[endpoint], '1', 'sum', 'asInt', {endpoint}));
     });
 
+    Object.keys(requestMethods).forEach((method) => {
+      metrics.push(createMetric('methods', requests[method], '1', 'sum', 'asInt', {method}));
+    });
+
     Object.keys(pizzaPurchaseStats).forEach((status) => {
       const stat = pizzaPurchaseStats[status];
       const attributes = {status, endpoint: PIZZA_FACTORY_ENDPOINT}
@@ -68,7 +72,6 @@ if (process.env.NODE_ENV !== 'test') {
       metrics.push(createMetric('pizza_purchase_latency_total', stat.totalLatencyMs, 'ms', 'sum', 'asDouble', attributes))
       metrics.push(createMetric('pizza_purchase_price_total', stat.totalPrice, '1', 'sum', 'asDouble', attributes))
       metrics.push(createMetric('pizza_purchase_pizza_total', stat.totalPizzas, '1', 'sum', 'asInt', attributes))
-
     })
 
     metrics.push(createMetric('cpu', getCpuUsagePercentage(), '%', 'gauge', 'asDouble', {}))
