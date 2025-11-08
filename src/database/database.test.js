@@ -32,6 +32,15 @@ test("createFranchise", async () => {
   expect(createdFranchise).not.toBeUndefined();
 });
 
+test("createStore", async () => {
+  const randomName = Math.floor(Math.random() * 1000000).toString()
+  const createdStore = await DB.createStore(1,{
+    franchiseId: 1,
+    name: randomName
+  });
+  expect(createdStore).not.toBeUndefined();
+})
+
 test("getOrders", async () => {
     const user = await DB.addUser(defaultAdmin);
     const orders = await DB.getOrders(user)
