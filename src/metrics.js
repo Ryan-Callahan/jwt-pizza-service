@@ -5,14 +5,33 @@ const PIZZA_FACTORY_ENDPOINT = `${config.factory.url}/api/order`
 
 // Metrics stored in memory
 const requests = {};
-const requestMethods = {};
 const pizzaPurchaseStats = {};
 
 // Middleware to track requests
 function requestTracker(req, res, next) {
-  const endpoint = `[${req.method}] ${req.path}`;
-  requests[endpoint] = (requests[endpoint] || 0) + 1;
-  requestMethods[`${req.method}`] = (requestMethods[req.method] || 0) + 1;
+  const begin = performance.now();
+
+  res.on('finish', () => {
+    try {
+      const finish = performance.now();
+      const latency = finish - begin;
+      const endpoint = `[${req.method}] ${req.path}`;
+      if (!requests[endpoint]) {
+        requests[endpoint] = {
+          count: 0,
+          latencyMs: 0,
+          method: req.method,
+          path: req.path,
+        };
+      }
+      const request = requests[endpoint];
+      request.count += 1;
+      request.latencyMs += latency;
+    } catch (e) {
+      console.error(`requestTracker encountered an error: ${e}`);
+    }
+  });
+
   next();
 }
 
@@ -58,10 +77,6 @@ if (process.env.NODE_ENV !== 'test') {
     const metrics = [];
     Object.keys(requests).forEach((endpoint) => {
       metrics.push(createMetric('requests', requests[endpoint], '1', 'sum', 'asInt', {endpoint}));
-    });
-
-    Object.keys(requestMethods).forEach((method) => {
-      metrics.push(createMetric('methods', requestMethods[method], '1', 'sum', 'asInt', {method}));
     });
 
     Object.keys(pizzaPurchaseStats).forEach((status) => {
