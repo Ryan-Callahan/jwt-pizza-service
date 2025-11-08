@@ -77,10 +77,8 @@ if (process.env.NODE_ENV !== 'test') {
     const metrics = [];
     Object.keys(requests).forEach((endpoint) => {
       const request = requests[endpoint]
-      metrics.push(createMetric('requests', request.path, '1', 'sum', 'asInt', {endpoint}));
-      metrics.push(createMetric('requests', request.method, '1', 'sum', 'asInt', {endpoint}));
-      metrics.push(createMetric('requests', request.totalLatencyMs, '1', 'sum', 'asInt', {endpoint}));
-      metrics.push(createMetric('requests', request.count, '1', 'sum', 'asInt', {endpoint}));
+      metrics.push(createMetric('request_latency', request.totalLatencyMs, 'ms', 'sum', 'asDouble', {endpoint}));
+      metrics.push(createMetric('requests', request.count, '1', 'sum', 'asInt', {endpoint, method: request.method, path: request.path}));
     });
 
     Object.keys(pizzaPurchaseStats).forEach((status) => {
