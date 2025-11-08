@@ -19,14 +19,14 @@ function requestTracker(req, res, next) {
       if (!requests[endpoint]) {
         requests[endpoint] = {
           count: 0,
-          latencyMs: 0,
+          totalLatencyMs: 0,
           method: req.method,
           path: req.path,
         };
       }
       const request = requests[endpoint];
       request.count += 1;
-      request.latencyMs += latency;
+      request.totalLatencyMs += latency;
     } catch (e) {
       console.error(`requestTracker encountered an error: ${e}`);
     }
@@ -76,7 +76,11 @@ if (process.env.NODE_ENV !== 'test') {
   setInterval(() => {
     const metrics = [];
     Object.keys(requests).forEach((endpoint) => {
-      metrics.push(createMetric('requests', requests[endpoint], '1', 'sum', 'asInt', {endpoint}));
+      const request = requests[endpoint]
+      metrics.push(createMetric('requests', request.path, '1', 'sum', 'asInt', {endpoint}));
+      metrics.push(createMetric('requests', request.method, '1', 'sum', 'asInt', {endpoint}));
+      metrics.push(createMetric('requests', request.totalLatencyMs, '1', 'sum', 'asInt', {endpoint}));
+      metrics.push(createMetric('requests', request.count, '1', 'sum', 'asInt', {endpoint}));
     });
 
     Object.keys(pizzaPurchaseStats).forEach((status) => {
