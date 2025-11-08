@@ -6,6 +6,8 @@ const PIZZA_FACTORY_ENDPOINT = `${config.factory.url}/api/order`
 // Metrics stored in memory
 const requests = {};
 const pizzaPurchaseStats = {};
+const userStats = {}
+let loggedInUsers = 0
 
 // Middleware to track requests
 function requestTracker(req, res, next) {
@@ -16,6 +18,7 @@ function requestTracker(req, res, next) {
       const finish = performance.now();
       const latency = finish - begin;
       const endpoint = `[${req.method}] ${req.path}`;
+
       if (!requests[endpoint]) {
         requests[endpoint] = {
           count: 0,
@@ -24,9 +27,31 @@ function requestTracker(req, res, next) {
           path: req.path,
         };
       }
+
       const request = requests[endpoint];
       request.count += 1;
       request.totalLatencyMs += latency;
+
+      if (req.path === '/api/auth') {
+        if (req.path === 'POST' || req.path === 'PUT') {
+          if (!userStats[res.status]) {
+            userStats[res.status] = {
+              count: 0
+            }
+          }
+          userStats[res.status].count += 1;
+          if (res.status === 200) {
+            loggedInUsers += 1
+          }
+        }
+
+        if (req.path === 'DELETE' && res.status === 200) {
+          loggedInUsers -= 1
+        }
+      }
+
+
+
     } catch (e) {
       console.error(`requestTracker encountered an error: ${e}`);
     }
@@ -91,6 +116,12 @@ if (process.env.NODE_ENV !== 'test') {
       metrics.push(createMetric('pizza_purchase_pizza_total', stat.totalPizzas, '1', 'sum', 'asInt', attributes))
     })
 
+    Object.keys(userStats).forEach((status) => {
+      const userStat = userStats[status];
+      metrics.push(createMetric('authentication_requests', userStat.count, '1', 'sum', 'asInt', {status}))
+    })
+
+    metrics.push(createMetric('active_users', loggedInUsers, '1', 'sum', 'asInt', {}))
     metrics.push(createMetric('cpu', getCpuUsagePercentage(), '%', 'gauge', 'asDouble', {}))
     metrics.push(createMetric('memory', getMemoryUsagePercentage(), '%', 'gauge', 'asDouble', {}))
 
