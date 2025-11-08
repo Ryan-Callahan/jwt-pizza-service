@@ -5,12 +5,14 @@ const PIZZA_FACTORY_ENDPOINT = `${config.factory.url}/api/order`
 
 // Metrics stored in memory
 const requests = {};
+const requestMethods = {};
 const pizzaPurchaseStats = {};
 
 // Middleware to track requests
 function requestTracker(req, res, next) {
   const endpoint = `[${req.method}] ${req.path}`;
   requests[endpoint] = (requests[endpoint] || 0) + 1;
+  requestMethods[req.method] = (requestMethods[req.method] || 0) + 1;
   next();
 }
 
