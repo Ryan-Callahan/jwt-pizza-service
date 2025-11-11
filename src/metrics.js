@@ -33,7 +33,7 @@ function requestTracker(req, res, next) {
       request.totalLatencyMs += latency;
 
       if (req.path === '/api/auth') {
-        if (req.path === 'POST' || req.path === 'PUT') {
+        if (req.method === 'POST' || req.method === 'PUT') {
           if (!userStats[res.status]) {
             userStats[res.status] = {
               count: 0
@@ -45,7 +45,7 @@ function requestTracker(req, res, next) {
           }
         }
 
-        if (req.path === 'DELETE' && res.status === 200) {
+        if (req.method === 'DELETE' && res.status === 200) {
           loggedInUsers -= 1
         }
       }
