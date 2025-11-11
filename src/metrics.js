@@ -6,7 +6,7 @@ const PIZZA_FACTORY_ENDPOINT = `${config.factory.url}/api/order`
 // Metrics stored in memory
 const requests = {};
 const pizzaPurchaseStats = {};
-const userStats = {}
+const authStats = {}
 let loggedInUsers = 0
 
 // Middleware to track requests
@@ -31,33 +31,20 @@ function requestTracker(req, res, next) {
       const request = requests[endpoint];
       request.count += 1;
       request.totalLatencyMs += latency;
-
-      if (req.path === '/api/auth') {
-        if (req.method === 'POST' || req.method === 'PUT') {
-          if (!userStats[res.status]) {
-            userStats[res.status] = {
-              count: 0
-            }
-          }
-          userStats[res.status].count += 1;
-          if (res.status === 200) {
-            loggedInUsers += 1
-          }
-        }
-
-        if (req.method === 'DELETE' && res.status === 200) {
-          loggedInUsers -= 1
-        }
-      }
-
-
-
     } catch (e) {
       console.error(`requestTracker encountered an error: ${e}`);
     }
   });
 
   next();
+}
+
+function incrementActiveUsers() {
+  loggedInUsers++
+}
+
+function decrementActiveUsers() {
+  loggedInUsers--
 }
 
 function getCpuUsagePercentage() {
@@ -71,6 +58,24 @@ function getMemoryUsagePercentage() {
   const usedMemory = totalMemory - freeMemory;
   const memoryUsage = (usedMemory / totalMemory) * 100;
   return memoryUsage.toFixed(2);
+}
+
+function incrementAuthSuccess() {
+  incrementAuthAttempt('success')
+}
+
+function incrementAuthFailure() {
+  incrementAuthAttempt('failure')
+}
+
+function incrementAuthAttempt(status) {
+  if (!authStats[status]) {
+    authStats[status] = {
+      count: 0
+    }
+  }
+
+  authStats[status].count += 1
 }
 
 function pizzaPurchase(status, latencyMs, order) {
@@ -116,8 +121,8 @@ if (process.env.NODE_ENV !== 'test') {
       metrics.push(createMetric('pizza_purchase_pizza_total', stat.totalPizzas, '1', 'sum', 'asInt', attributes))
     })
 
-    Object.keys(userStats).forEach((status) => {
-      const userStat = userStats[status];
+    Object.keys(authStats).forEach((status) => {
+      const userStat = authStats[status];
       metrics.push(createMetric('authentication_requests', userStat.count, '1', 'sum', 'asInt', {status}))
     })
 
@@ -199,4 +204,4 @@ function sendMetricToGrafana(metrics) {
     });
 }
 
-module.exports = { requestTracker, pizzaPurchase };
+module.exports = { requestTracker, pizzaPurchase, incrementActiveUsers, decrementActiveUsers, incrementAuthSuccess, incrementAuthFailure};
